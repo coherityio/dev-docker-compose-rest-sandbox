@@ -1,0 +1,93 @@
+version: '3'
+services:
+  # ============================================
+  # SEE .env file for HOST PORT VALUES
+  # ============================================
+
+# ====================================================
+# HASHICORP SECRETS VAULTn
+# ====================================================
+
+  hashicorp-vault:
+    image: hashicorp/vault:latest
+    container_name: hashicorp-vault
+    ports:
+      - "${HASHI_VAULT_PORT}:8200"
+    volumes:
+      - vaultdata:/vault/data
+      - ./hashicorp-vault/config:/vault/config
+      - ./hashicorp-vault/config/vault.json:/vault/config/vault.json
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -config=/vault/config/vault.json
+    networks:
+      - infra-net
+
+# ====================================================
+# KEY CLOAK
+# Keycloak UI -> http://localhost:8080
+# ====================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak/config/coherity-sample-realm.json:/opt/keycloak/data/import/coherity-sample-realm.json
+    ports:
+      - "${KEYCLOAK_PORT}:8080"   #
+    networks: 
+      - infra-net
+
+
+# ====================================================
+# SYNCHUB REST APIS
+# ====================================================
+
+#  sh-service-control-plane-rest-api-1:
+#    build: 
+#      context: ${SH_SERVICE_CONTROL_PLANE_REST_API_PROJECT_DIR}
+#      dockerfile: Dockerfile.local
+#    image: sh-service-control-plane-rest-api
+#    container_name: sh-service-control-plane-rest-api-1
+#    ports:
+#      - "${SH_SERVICE_CONTROL_PLANE_REST_API_1_PORT}:8080"
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sh_control_plane?currentSchema=control_plane&stringtype=unspecified
+#      SPRING_DATASOURCE_USERNAME: postgres
+#      SPRING_DATASOURCE_PASSWORD: password
+#    networks:
+#      - infra-net
+
+
+
+# ====================================================
+# AMBASSADOR ENVOY HTTP PROXY
+# ====================================================
+
+#  ambassador:
+#    image: quay.io/datawire/ambassador:1.14.3
+#    container_name: ambassador
+#    depends_on:
+#      - sh-service-ingest-rest-api_1
+#      - sh-service-ingest-rest-api_2
+#    ports:
+#      - "${AMBASSADOR_PORT}:80"
+#    volumes:
+#      - ./ambassador/ambassador-config:/ambassador/ambassador-config
+#    environment:
+#      - AMBASSADOR_NAMESPACE=default
+#    networks:
+#      - infra-net
+
+
+
+
+volumes:
+  vaultdata:
+
+networks:
+  infra-net:
+    name: infra-net
