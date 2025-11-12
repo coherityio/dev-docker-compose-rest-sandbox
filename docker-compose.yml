@@ -4,6 +4,22 @@ services:
   # SEE .env file for HOST PORT VALUES
   # ============================================
 
+
+# ====================================================
+# POSTGRES DATABASE
+# ====================================================
+  postgres:
+    image: postgres:11
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sh_control_plane
+    networks:
+      - infra-net
+
 # ====================================================
 # HASHICORP SECRETS VAULTn
 # ====================================================
@@ -86,6 +102,7 @@ services:
 
 
 volumes:
+  pgdata:
   vaultdata:
 
 networks:
